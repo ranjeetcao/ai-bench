@@ -1,0 +1,11 @@
+# Verbose / log output (not part of the committed dataset)
+server.log
+*.stdout
+
+# Throwaway warm-up / smoke runs
+smoke.json
+warmup.stdout
+
+# Python
+__pycache__/
+*.pyc
