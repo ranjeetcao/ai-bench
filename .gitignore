@@ -6,6 +6,11 @@ server.log
 smoke.json
 warmup.stdout
 
+# Per-run bookkeeping (not part of the committed dataset)
+download.log
+_progress.txt
+retry_*.out
+
 # Python
 __pycache__/
 *.pyc
