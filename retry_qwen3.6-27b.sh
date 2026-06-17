@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
-# One-off retry for qwen3.6-27b-awq, which OOM'd at KV-cache allocation during the
-# full lineup run (weights fit, but weights + KV cache exceeded the 0.90 budget).
-# Fix: drop --gpu-memory-utilization to 0.85 and enable expandable_segments to cut
-# allocator fragmentation. Same standard sweep as run_all_models.sh.
+# One-off retry for qwen3.6-27b-awq, which OOM'd serving in the full lineup run.
+# Root cause: weights are only ~19.7 GiB, but CUDA-graph capture (batch sizes up to
+# 512) + activation profiling pushed usage to 43.4 GiB before KV alloc -> OOM. This
+# is a fixed cost independent of --gpu-memory-utilization (lowering it 0.90->0.85
+# freed <0.2 GiB). Fix: cap --max-num-seqs 64 so graph capture only covers batch
+# sizes we actually sweep (concurrency <=64); also enable expandable_segments. Same
+# standard sweep as run_all_models.sh.
 
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate vllm
@@ -55,8 +58,9 @@ sweep () {
 
 echo "===== RETRY $SUB ($REPO) ====="
 free_gpu
-echo "SERVE $SUB (gpu-util 0.85, expandable_segments)"
-vllm serve "$REPO" --host $HOST --port $PORT --max-model-len 8192 --gpu-memory-utilization 0.85 \
+echo "SERVE $SUB (max-num-seqs 64, expandable_segments)"
+vllm serve "$REPO" --host $HOST --port $PORT --max-model-len 8192 --gpu-memory-utilization 0.90 \
+  --max-num-seqs 64 \
   > "$DIR/server.log" 2>&1 &
 SVPID=$!
 
