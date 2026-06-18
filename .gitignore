@@ -1,5 +1,6 @@
 # Verbose / log output (not part of the committed dataset)
 server.log
+server*.log
 *.stdout
 
 # Throwaway warm-up / smoke runs
@@ -10,6 +11,7 @@ warmup.stdout
 download.log
 _progress.txt
 retry_*.out
+run_*.out
 
 # Python
 __pycache__/
